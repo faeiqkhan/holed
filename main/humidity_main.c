@@ -44,9 +44,9 @@ void temperature_task(void *arg)
 
             ssd1306_set_text_size(&dev, 1);
             ssd1306_draw_string(&dev, 0, 0, "Humidity:");
-            ssd1306_draw_string(&dev, 80, 0, humidity_str);
+            ssd1306_draw_string(&dev, 64, 0, humidity_str, SSD1306_COLOR_WHITE, SSD1306_COLOR_BLACK);
             ssd1306_draw_string(&dev, 0, 16, "Temperature:");
-            ssd1306_draw_string(&dev, 96, 16, temperature_str);
+            ssd1306_draw_string(&dev, 80, 16, temperature_str, SSD1306_COLOR_WHITE, SSD1306_COLOR_BLACK);
 
             ssd1306_refresh(&dev, true);
         }
