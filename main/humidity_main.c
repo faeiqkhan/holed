@@ -27,11 +27,11 @@ void temperature_task(void *arg)
     };
 
     i2c_param_config(I2C_MASTER_NUM, &i2c_config);
-    i2c_driver_install(I2C_MASTER_NUM, i2c_config.mode, 0, 0, 0);
+    i2c_driver_install(I2C_MASTER_NUM, i2c_config.mode, 0, 0);
 
     ssd1306_t dev;
     dev.i2c_port = I2C_MASTER_NUM;
-    dev.i2c_addr = SSD1306_I2C_ADDR_DEFAULT;
+    dev.i2c_addr = SSD1306_I2C_ADDR_0;
     dev.width = SSD1306_WIDTH_128;
     dev.height = SSD1306_HEIGHT_64;
 
@@ -53,9 +53,9 @@ void temperature_task(void *arg)
             ssd1306_clear_screen(&dev);
 
             ssd1306_set_text_size(&dev, SSD1306_TEXT_SIZE_1X);
-            ssd1306_draw_string(&dev, 0, 0, "Humidity:");
+            ssd1306_draw_string(&dev, 0, 0, "Humidity:", SSD1306_COLOR_WHITE, SSD1306_COLOR_BLACK);
             ssd1306_draw_string(&dev, 64, 0, humidity_str, SSD1306_COLOR_WHITE, SSD1306_COLOR_BLACK);
-            ssd1306_draw_string(&dev, 0, 16, "Temperature:");
+            ssd1306_draw_string(&dev, 0, 16, "Temperature:", SSD1306_COLOR_WHITE, SSD1306_COLOR_BLACK);
             ssd1306_draw_string(&dev, 80, 16, temperature_str, SSD1306_COLOR_WHITE, SSD1306_COLOR_BLACK);
 
             ssd1306_refresh(&dev, true);
