@@ -11,26 +11,31 @@
 #define OLED_SDA_GPIO 4 // D2 pin
 #define OLED_SCL_GPIO 15 // D8 pin
 #define I2C_MASTER_NUM I2C_NUM_0
-#define I2C_MASTER_SDA_GPIO OLED_SDA_GPIO
-#define I2C_MASTER_SCL_GPIO OLED_SCL_GPIO
 #define I2C_MASTER_FREQ_HZ 100000
 
 void temperature_task(void *arg)
 {
     ESP_ERROR_CHECK(dht_init(DHT_GPIO, false));
 
-    i2c_config_t i2c_config;
-    i2c_config.mode = I2C_MODE_MASTER;
-    i2c_config.sda_io_num = I2C_MASTER_SDA_GPIO;
-    i2c_config.sda_pullup_en = GPIO_PULLUP_ENABLE;
-    i2c_config.scl_io_num = I2C_MASTER_SCL_GPIO;
-    i2c_config.scl_pullup_en = GPIO_PULLUP_ENABLE;
-    i2c_config.master.clk_speed = I2C_MASTER_FREQ_HZ;
+    i2c_config_t i2c_config = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = OLED_SDA_GPIO,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_io_num = OLED_SCL_GPIO,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = I2C_MASTER_FREQ_HZ,
+    };
 
     ESP_ERROR_CHECK(i2c_param_config(I2C_MASTER_NUM, &i2c_config));
     ESP_ERROR_CHECK(i2c_driver_install(I2C_MASTER_NUM, i2c_config.mode, 0, 0, 0));
 
-    ssd1306_init();
+    ssd1306_t dev;
+    dev.port = I2C_MASTER_NUM;
+    dev.addr = SSD1306_I2C_ADDR_DEFAULT;
+    dev.width = SSD1306_WIDTH_128;
+    dev.height = SSD1306_HEIGHT_64;
+
+    ssd1306_init(&dev);
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
@@ -45,15 +50,15 @@ void temperature_task(void *arg)
             snprintf(humidity_str, sizeof(humidity_str), "%d%%", humidity);
             snprintf(temperature_str, sizeof(temperature_str), "%dC", temperature);
 
-            ssd1306_clearScreen();
+            ssd1306_clear_screen(&dev);
 
-            ssd1306_set_font(FONT_FACE_MONOSPACE, 12);
-            ssd1306_drawString(0, 0, "Humidity:");
-            ssd1306_drawString(80, 0, humidity_str);
-            ssd1306_drawString(0, 16, "Temperature:");
-            ssd1306_drawString(96, 16, temperature_str);
+            ssd1306_set_text_size(&dev, 1);
+            ssd1306_draw_string(&dev, 0, 0, "Humidity:");
+            ssd1306_draw_string(&dev, 80, 0, humidity_str);
+            ssd1306_draw_string(&dev, 0, 16, "Temperature:");
+            ssd1306_draw_string(&dev, 96, 16, temperature_str);
 
-            ssd1306_display();
+            ssd1306_refresh(&dev, true);
         }
         else {
             printf("Fail to get DHT temperature data\n");
