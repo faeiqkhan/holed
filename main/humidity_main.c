@@ -23,6 +23,7 @@ void temperature_task(void *arg)
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_io_num = OLED_SCL_GPIO,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .clk_flags = 0,
         .master.clk_speed = I2C_MASTER_FREQ_HZ,
     };
 
