@@ -17,18 +17,7 @@ void temperature_task(void *arg)
 {
     ESP_ERROR_CHECK(dht_init(DHT_GPIO, false));
 
-    i2c_config_t i2c_config = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = OLED_SDA_GPIO,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_io_num = OLED_SCL_GPIO,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .clk_flags = 0,
-        .master.clk_speed = I2C_MASTER_FREQ_HZ,
-    };
-
-    ESP_ERROR_CHECK(i2c_param_config(I2C_MASTER_NUM, &i2c_config));
-    ESP_ERROR_CHECK(i2c_driver_install(I2C_MASTER_NUM, i2c_config.mode, 0, 0, 0));
+    i2c_master_init();
 
     ssd1306_t dev;
     dev.port = I2C_MASTER_NUM;
