@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "oled/oled.h"
+#include "ssd1306/ssd1306.h"
 #include "driver/i2c.h"
 
 #define I2C_MASTER_NUM I2C_NUM_0
