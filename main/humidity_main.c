@@ -20,21 +20,18 @@ void temperature_task(void *arg)
     i2c_config_t i2c_config = {
         .mode = I2C_MODE_MASTER,
         .sda_io_num = OLED_SDA_GPIO,
-        .scl_io_num = OLED_SCL_GPIO,
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_io_num = OLED_SCL_GPIO,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .clk_flags = 0,
-        .master = {
-            .clk_speed = I2C_MASTER_FREQ_HZ,
-        },
+        .master.clk_speed = I2C_MASTER_FREQ_HZ
     };
 
     i2c_param_config(I2C_MASTER_NUM, &i2c_config);
-    i2c_driver_install(I2C_MASTER_NUM, i2c_config.mode, 0, 0);
+    i2c_driver_install(I2C_MASTER_NUM, i2c_config.mode, 0, 0, 0);
 
     ssd1306_t dev;
     dev.i2c_port = I2C_MASTER_NUM;
-    dev.i2c_addr = SSD1306_I2C_ADDR_0;
+    dev.i2c_addr = SSD1306_I2C_ADDR_DEFAULT;
     dev.width = SSD1306_WIDTH_128;
     dev.height = SSD1306_HEIGHT_64;
 
