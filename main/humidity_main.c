@@ -4,16 +4,32 @@
 #include <esp_err.h>
 #include <dht/dht.h>
 #include <ssd1306/ssd1306.h>
+#include <driver/gpio.h>
+#include <driver/i2c.h>
 
 #define DHT_GPIO 5 // D1 pin
 #define OLED_SDA_GPIO 4 // D2 pin
 #define OLED_SCL_GPIO 15 // D8 pin
+#define I2C_MASTER_NUM I2C_NUM_0
+#define I2C_MASTER_SDA_GPIO OLED_SDA_GPIO
+#define I2C_MASTER_SCL_GPIO OLED_SCL_GPIO
+#define I2C_MASTER_FREQ_HZ 100000
 
 void temperature_task(void *arg)
 {
     ESP_ERROR_CHECK(dht_init(DHT_GPIO, false));
 
-    i2c_master_init(OLED_SDA_GPIO, OLED_SCL_GPIO);
+    i2c_config_t i2c_config = {
+        .mode = I2C_MODE_MASTER,
+        .sda_io_num = I2C_MASTER_SDA_GPIO,
+        .sda_pullup_en = GPIO_PULLUP_ENABLE,
+        .scl_io_num = I2C_MASTER_SCL_GPIO,
+        .scl_pullup_en = GPIO_PULLUP_ENABLE,
+        .master.clk_speed = I2C_MASTER_FREQ_HZ,
+    };
+    i2c_param_config(I2C_MASTER_NUM, &i2c_config);
+    i2c_driver_install(I2C_MASTER_NUM, I2C_MODE_MASTER, 0, 0, 0);
+
     ssd1306_init();
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
