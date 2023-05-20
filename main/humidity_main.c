@@ -13,8 +13,8 @@ void temperature_task(void *arg)
 {
     ESP_ERROR_CHECK(dht_init(DHT_GPIO, false));
 
-    ssd1306_128x64_i2c_init(OLED_SDA_GPIO, OLED_SCL_GPIO);
-    ssd1306_display_on();
+    i2c_master_init(OLED_SDA_GPIO, OLED_SCL_GPIO);
+    ssd1306_init();
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
@@ -29,14 +29,15 @@ void temperature_task(void *arg)
             snprintf(humidity_str, sizeof(humidity_str), "%d%%", humidity);
             snprintf(temperature_str, sizeof(temperature_str), "%dC", temperature);
 
-            ssd1306_clear();
+            ssd1306_clearScreen();
 
-            ssd1306_draw_string(0, 0, "Humidity:");
-            ssd1306_draw_string(80, 0, humidity_str);
-            ssd1306_draw_string(0, 16, "Temperature:");
-            ssd1306_draw_string(96, 16, temperature_str);
+            ssd1306_setTextSize(1);
+            ssd1306_drawString(0, 0, "Humidity:");
+            ssd1306_drawString(80, 0, humidity_str);
+            ssd1306_drawString(0, 16, "Temperature:");
+            ssd1306_drawString(96, 16, temperature_str);
 
-            ssd1306_refresh();
+            ssd1306_display();
         }
         else {
             printf("Fail to get DHT temperature data\n");
