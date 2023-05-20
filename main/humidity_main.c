@@ -31,7 +31,7 @@ void temperature_task(void *arg)
 
             ssd1306_clearScreen();
 
-            ssd1306_setTextSize(1);
+            ssd1306_set_font(FONT_FACE_MONOSPACE, 12);
             ssd1306_drawString(0, 0, "Humidity:");
             ssd1306_drawString(80, 0, humidity_str);
             ssd1306_drawString(0, 16, "Temperature:");
