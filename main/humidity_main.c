@@ -25,13 +25,11 @@ void temperature_task(void *arg)
         .sda_pullup_en = GPIO_PULLUP_ENABLE,
         .scl_io_num = I2C_MASTER_SCL_GPIO,
         .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master = {
-            .clk_speed = I2C_MASTER_FREQ_HZ,
-        },
+        .master.clk_speed = I2C_MASTER_FREQ_HZ,
     };
     i2c_param_config(I2C_MASTER_NUM, &i2c_config);
-    i2c_driver_install(I2C_MASTER_NUM, I2C_MODE_MASTER, 0, 0, 0);
-//
+    i2c_driver_install(I2C_MASTER_NUM, i2c_config.mode, 0, 0, 0);
+
     ssd1306_init();
 
     vTaskDelay(2000 / portTICK_PERIOD_MS);
