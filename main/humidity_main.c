@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <esp8266/FreeRTOS.h>
+#include <esp8266/task.h>
 #include <driver/gpio.h>
 #include <ssd1306/ssd1306.h>
 #include <driver/i2c.h>
@@ -11,7 +11,7 @@
 #define SDA_PIN 4
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
-#define DHT_GPIO 14 // GPIO pin connected to the DHT22 sensor
+#define DHT_GPIO 2 // GPIO pin connected to the DHT22 sensor
 
 void temperature_task(void *arg)
 {
@@ -19,25 +19,24 @@ void temperature_task(void *arg)
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
     // Initialize I2C communication for the OLED display
-    int i2c_master_port = I2C_NUM_0;
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = SDA_PIN;
     conf.sda_pullup_en = 1;
     conf.scl_io_num = SCL_PIN;
     conf.scl_pullup_en = 1;
-    conf.clk_stretch_tick = 300;
-    ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode));
-    ESP_ERROR_CHECK(i2c_param_config(i2c_master_port, &conf));
+    conf.master.clk_speed = 100000;
+    ESP_ERROR_CHECK(i2c_param_config(I2C_NUM_0, &conf));
+    ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0));
 
     // Initialize the SSD1306 OLED display
     ssd1306_t dev = {
         .i2c_port = i2c_master_port,
         .i2c_addr = SSD1306_I2C_ADDR_0,
-        .screen = SSD1306_SCREEN,
+        .screen = SSD1306_SCREEN, // or SH1106_SCREEN
         .width = DISPLAY_WIDTH,
-        .height = DISPLAY_HEIGHT
-    };
+        .height = DISPLAY_HEIGHT};
+    
     ssd1306_init(&dev);
 
     while (1)
@@ -63,7 +62,7 @@ void temperature_task(void *arg)
     vTaskDelete(NULL);
 }
 
-void app_main()
+void user_init(void)
 {
-    xTaskCreate(temperature_task, "temperature task", 2048, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(temperature_task, "temperature task", 256, NULL, 2, NULL);
 }
