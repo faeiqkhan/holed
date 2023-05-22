@@ -19,24 +19,25 @@ void temperature_task(void *arg)
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 
     // Initialize I2C communication for the OLED display
+    int i2c_master_port = I2C_NUM_0;
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = SDA_PIN;
     conf.sda_pullup_en = 1;
     conf.scl_io_num = SCL_PIN;
     conf.scl_pullup_en = 1;
-    confmaster.clk_speed = 100000;
-    ESP_ERROR_CHECK(i2c_param_config(I2C_NUM_0, &conf));
-    ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0));
+    conf.clk_stretch_tick = 300;
+    ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode));
+    ESP_ERROR_CHECK(i2c_param_config(i2c_master_port, &conf));
 
-    // Initialize the SSD1306 OLED display
+    // init ssd1306
     ssd1306_t dev = {
         .i2c_port = i2c_master_port,
         .i2c_addr = SSD1306_I2C_ADDR_0,
         .screen = SSD1306_SCREEN, // or SH1106_SCREEN
         .width = DISPLAY_WIDTH,
         .height = DISPLAY_HEIGHT};
-    
+
     ssd1306_init(&dev);
 
     while (1)
