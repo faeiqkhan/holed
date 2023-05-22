@@ -49,9 +49,9 @@ void temperature_task(void *arg)
             char display_text[16];
             snprintf(display_text, sizeof(display_text), "Humidity: %d%%", humidity);
             ssd1306_clear_screen(&dev);
-            ssd1306_draw_string(&dev, 0, 0, display_text, OLED_COLOR_WHITE);
+            ssd1306_draw_string(&dev, 0, 0, display_text, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
             snprintf(display_text, sizeof(display_text), "Temperature: %dC", temperature);
-            ssd1306_draw_string(&dev, 0, 16, display_text, OLED_COLOR_WHITE);
+            ssd1306_draw_string(&dev, 0, 16, display_text, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
             ssd1306_init(&dev);
         }
         else
