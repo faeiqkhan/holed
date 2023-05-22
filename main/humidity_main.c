@@ -29,6 +29,20 @@ void temperature_task(void *arg)
     conf.clk_stretch_tick = 300;
     ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode));
     ESP_ERROR_CHECK(i2c_param_config(i2c_master_port, &conf));
+    
+    
+    
+    
+    const font_info_t font = {
+    .height = 8,
+    .width = 6,
+    .start_char = ' ',
+    .end_char = '~',
+    .chars = basic_font
+     };
+
+    
+    
 
     // init ssd1306
     ssd1306_t dev = {
