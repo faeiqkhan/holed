@@ -1,56 +1,69 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "ssd1306/ssd1306.h"
-#include "driver/i2c.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <driver/gpio.h>
+#include <ssd1306/ssd1306.h>
+#include <driver/i2c.h>
+#include <esp_err.h>
+#include <dht/dht.h>
 
-#define I2C_MASTER_NUM I2C_NUM_0
-#define I2C_MASTER_FREQ_HZ 100000
+#define SCL_PIN 5
+#define SDA_PIN 4
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 64
+#define DHT_GPIO 14 // GPIO pin connected to the DHT22 sensor
 
-#define OLED_I2C_ADDR 0x3C
+void temperature_task(void *arg)
+{
+    ESP_ERROR_CHECK(dht_init(DHT_GPIO, false));
+    vTaskDelay(2000 / portTICK_PERIOD_MS);
 
-#define OLED_WIDTH 128
-#define OLED_HEIGHT 64
+    // Initialize I2C communication for the OLED display
+    int i2c_master_port = I2C_NUM_0;
+    i2c_config_t conf;
+    conf.mode = I2C_MODE_MASTER;
+    conf.sda_io_num = SDA_PIN;
+    conf.sda_pullup_en = 1;
+    conf.scl_io_num = SCL_PIN;
+    conf.scl_pullup_en = 1;
+    conf.clk_stretch_tick = 300;
+    ESP_ERROR_CHECK(i2c_driver_install(i2c_master_port, conf.mode));
+    ESP_ERROR_CHECK(i2c_param_config(i2c_master_port, &conf));
+
+    // Initialize the SSD1306 OLED display
+    ssd1306_t dev = {
+        .i2c_port = i2c_master_port,
+        .i2c_addr = SSD1306_I2C_ADDR_0,
+        .screen = SSD1306_SCREEN,
+        .width = DISPLAY_WIDTH,
+        .height = DISPLAY_HEIGHT
+    };
+    ssd1306_init(&dev);
+
+    while (1)
+    {
+        int humidity = 0;
+        int temperature = 0;
+        if (dht_read_data(DHT_TYPE_DHT22, DHT_GPIO, &humidity, &temperature) == ESP_OK)
+        {
+            char display_text[16];
+            snprintf(display_text, sizeof(display_text), "Humidity: %d%%", humidity);
+            ssd1306_clear_screen(&dev);
+            ssd1306_draw_string(&dev, 0, 0, display_text, SSD1306_COLOR_WHITE);
+            snprintf(display_text, sizeof(display_text), "Temperature: %dC", temperature);
+            ssd1306_draw_string(&dev, 0, 16, display_text, SSD1306_COLOR_WHITE);
+            ssd1306_refresh(&dev);
+        }
+        else
+        {
+            printf("Fail to get DHT temperature data\n");
+        }
+        vTaskDelay(5000 / portTICK_PERIOD_MS);
+    }
+    vTaskDelete(NULL);
+}
 
 void app_main()
 {
-    i2c_config_t i2c_config = {
-        .mode = I2C_MODE_MASTER,
-        .sda_io_num = 21,
-        .sda_pullup_en = GPIO_PULLUP_ENABLE,
-        .scl_io_num = 22,
-        .scl_pullup_en = GPIO_PULLUP_ENABLE,
-        .master.clk_speed = I2C_MASTER_FREQ_HZ
-    };
-
-    i2c_param_config(I2C_MASTER_NUM, &i2c_config);
-    i2c_driver_install(I2C_MASTER_NUM, I2C_MODE_MASTER, 0, 0);
-
-    oled_t dev;
-    dev.width = OLED_WIDTH;
-    dev.height = OLED_HEIGHT;
-    dev.color = OLED_COLOR_WHITE;
-
-    uint8_t *fb = (uint8_t *)malloc(OLED_WIDTH * OLED_HEIGHT / 8);
-    memset(fb, 0, OLED_WIDTH * OLED_HEIGHT / 8);
-
-    oled_init(&dev);
-
-    oled_draw_string(&dev, fb, &Font_7x10, 0, 0, "Humidity:", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-    oled_draw_string(&dev, fb, &Font_7x10, 0, 16, "Temperature:", OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-
-    char humidity_str[16];
-    char temperature_str[16];
-    float humidity = 55.5;
-    float temperature = 25.5;
-
-    snprintf(humidity_str, sizeof(humidity_str), "%.1f %%", humidity);
-    snprintf(temperature_str, sizeof(temperature_str), "%.1f C", temperature);
-
-    oled_draw_string(&dev, fb, &Font_7x10, 64, 0, humidity_str, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-    oled_draw_string(&dev, fb, &Font_7x10, 80, 16, temperature_str, OLED_COLOR_WHITE, OLED_COLOR_BLACK);
-
-    oled_display_frame_buffer(&dev, fb);
-
-    free(fb);
+    xTaskCreate(temperature_task, "temperature task", 2048, NULL, tskIDLE_PRIORITY, NULL);
 }
