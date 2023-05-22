@@ -25,7 +25,7 @@ void temperature_task(void *arg)
     conf.sda_pullup_en = 1;
     conf.scl_io_num = SCL_PIN;
     conf.scl_pullup_en = 1;
-    conf.master.clk_speed = 100000;
+    confmaster.clk_speed = 100000;
     ESP_ERROR_CHECK(i2c_param_config(I2C_NUM_0, &conf));
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM_0, conf.mode, 0, 0, 0));
 
