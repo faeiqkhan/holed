@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <esp8266/FreeRTOS.h>
-#include <esp8266/task.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <driver/gpio.h>
 #include <ssd1306/ssd1306.h>
 #include <driver/i2c.h>
